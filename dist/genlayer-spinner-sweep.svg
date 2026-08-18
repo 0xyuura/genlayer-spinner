@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Loading">
+  <title>GenLayer spinner, sweep variant</title>
+  <defs>
+    <linearGradient id="glpSweep" gradientUnits="userSpaceOnUse" x1="0" y1="32" x2="34.0294" y2="0">
+      <stop offset="0" stop-color="#9B83EA"/>
+      <stop offset="0.24" stop-color="#77AEE9"/>
+      <stop offset="0.46" stop-color="#75D4B6"/>
+      <stop offset="0.70" stop-color="#E694C4"/>
+      <stop offset="1" stop-color="#EFB36A"/>
+    </linearGradient>
+
+    <linearGradient id="glpBand" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0"    stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.26" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="0.78" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="1"    stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- a band of light 48 units tall, repeated every 64, scrolling upward.
+         translating a full 64 per cycle makes the loop seamless, and the band
+         is wider than the gap so the mark is never left empty. -->
+    <mask id="glpTide" maskUnits="userSpaceOnUse" x="-12" y="-112" width="58" height="256">
+      <g class="gl-wave">
+        <rect x="-12" y="-64" width="58" height="48" fill="url(#glpBand)"/>
+        <rect x="-12" y="0"   width="58" height="48" fill="url(#glpBand)"/>
+        <rect x="-12" y="64"  width="58" height="48" fill="url(#glpBand)"/>
+      </g>
+    </mask>
+  </defs>
+
+  <style>
+    .gl-ghost { fill: #8A8A93; fill-opacity: .30; }
+    .gl-wave  { animation: gl-wave 2.2s linear infinite; }
+
+    @keyframes gl-wave {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-64px); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .gl-ghost { fill: #FFFFFF; fill-opacity: .18; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gl-wave { animation: gl-pulse-alt 3s ease-in-out infinite; }
+      @keyframes gl-pulse-alt {
+        0%, 100% { transform: translateY(-16px); }
+        50%      { transform: translateY(-48px); }
+      }
+    }
+  </style>
+
+  <g transform="translate(3.6 4.8) scale(1.2)">
+    <g class="gl-ghost">
+      <path d="M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z"/>
+      <path d="M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z"/>
+      <path d="M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z"/>
+    </g>
+    <g mask="url(#glpTide)" fill="url(#glpSweep)">
+      <path d="M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z"/>
+      <path d="M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z"/>
+      <path d="M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Loading">
+  <title>GenLayer spinner, forced dark surface</title>
+  <defs>
+    <linearGradient id="glpRainbowD" gradientUnits="userSpaceOnUse" x1="4" y1="44" x2="44" y2="4">
+      <stop offset="0" stop-color="#9B83EA"/>
+      <stop offset="0.24" stop-color="#77AEE9"/>
+      <stop offset="0.46" stop-color="#75D4B6"/>
+      <stop offset="0.70" stop-color="#E694C4"/>
+      <stop offset="1" stop-color="#EFB36A"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .gl-track { fill: none; stroke: #FFFFFF; stroke-opacity: .16; stroke-width: 3.6; }
+    .gl-rotor { transform-origin: 24px 24px; animation: gl-rotor 1.6s linear infinite; }
+    .gl-arc {
+      fill: none; stroke: url(#glpRainbowD); stroke-width: 3.6; stroke-linecap: round;
+      animation: gl-arc 1.6s cubic-bezier(.42, 0, .25, 1) infinite;
+    }
+    .gl-core {
+      fill: #FFFFFF; transform-origin: 17.0147px 16px;
+      animation: gl-core 1.6s cubic-bezier(.34, 1.4, .5, 1) infinite;
+    }
+
+    @keyframes gl-rotor { to { transform: rotate(360deg); } }
+    @keyframes gl-arc {
+      0%   { stroke-dasharray: 9 116.7; stroke-dashoffset: 0; }
+      55%  { stroke-dasharray: 82 43.7; stroke-dashoffset: -20; }
+      100% { stroke-dasharray: 9 116.7; stroke-dashoffset: -125.664; }
+    }
+    @keyframes gl-core {
+      0%, 58%, 100% { transform: scale(1);    opacity: .90; }
+      74%           { transform: scale(1.11); opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gl-rotor { animation: none; transform: rotate(-90deg); }
+      .gl-arc   { animation: none; stroke-dasharray: 82 43.7; stroke-dashoffset: -20; }
+      .gl-core  { animation: none; opacity: 1; }
+    }
+  </style>
+
+  <circle class="gl-track" cx="24" cy="24" r="20"/>
+  <g class="gl-rotor">
+    <circle class="gl-arc" cx="24" cy="24" r="20"/>
+  </g>
+  <g transform="translate(14.472 15.04) scale(0.56)">
+    <g class="gl-core">
+      <path d="M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z"/>
+      <path d="M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z"/>
+      <path d="M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z"/>
+    </g>
+  </g>
+</svg>

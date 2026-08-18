@@ -1,0 +1,133 @@
+/* ==========================================================================
+   GenLayer Spinner. Pure CSS build.
+   Zero dependencies, zero images, one element.
+
+   Usage:
+     <span class="gl-spinner" role="status" aria-label="Loading"></span>
+
+   Sizing (any of these):
+     <span class="gl-spinner gl-spinner--sm"></span>            16px
+     <span class="gl-spinner" style="--gl-size:64px"></span>    custom
+
+   Colour:
+     The track and the GenLayer mark inherit `color`, so the spinner adapts to
+     light and dark surfaces with no extra rule. Set `color` on any ancestor.
+   ========================================================================== */
+
+.gl-spinner {
+  /* tokens */
+  --gl-size: 40px;
+  --gl-stroke: calc(var(--gl-size) / 13.3);
+  --gl-duration: 1.6s;
+  --gl-mark: 40%;
+
+  /* GenLayer Points rainbow, sampled from portal.genlayer.foundation */
+  --gl-c1: #9b83ea;
+  --gl-c2: #77aee9;
+  --gl-c3: #75d4b6;
+  --gl-c4: #e694c4;
+  --gl-c5: #efb36a;
+
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  width: var(--gl-size);
+  height: var(--gl-size);
+  border-radius: 50%;
+
+  /* the resting track. flat fallback first, then the adaptive value */
+  border: var(--gl-stroke) solid rgba(138, 138, 147, .22);
+  border-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+/* the sweeping arc */
+.gl-spinner::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--gl-stroke));
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(155, 131, 234, 0) 0deg,
+    var(--gl-c1) 46deg,
+    var(--gl-c2) 122deg,
+    var(--gl-c3) 190deg,
+    var(--gl-c4) 258deg,
+    var(--gl-c5) 316deg,
+    rgba(239, 179, 106, 0) 342deg,
+    rgba(239, 179, 106, 0) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
+          mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
+  animation: gl-spinner-rotor var(--gl-duration) linear infinite;
+}
+
+/* the GenLayer mark, painted with currentColor through a mask */
+.gl-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34.0294 32'%3E%3Cpath d='M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z'/%3E%3Cpath d='M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z'/%3E%3Cpath d='M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z'/%3E%3C/svg%3E") center / var(--gl-mark) no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34.0294 32'%3E%3Cpath d='M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z'/%3E%3Cpath d='M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z'/%3E%3Cpath d='M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z'/%3E%3C/svg%3E") center / var(--gl-mark) no-repeat;
+  animation: gl-spinner-core var(--gl-duration) cubic-bezier(.34, 1.4, .5, 1) infinite;
+}
+
+@keyframes gl-spinner-rotor {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gl-spinner-core {
+  0%, 58%, 100% { transform: scale(1);    opacity: .90; }
+  74%           { transform: scale(1.11); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Size presets. Below 24px the mark is dropped so the silhouette stays clean.
+   -------------------------------------------------------------------------- */
+
+.gl-spinner--sm { --gl-size: 16px; --gl-stroke: 2px; }
+.gl-spinner--md { --gl-size: 24px; --gl-stroke: 2.5px; }
+.gl-spinner--lg { --gl-size: 64px; }
+.gl-spinner--xl { --gl-size: 96px; --gl-duration: 1.8s; }
+
+.gl-spinner--sm::after,
+.gl-spinner--bare::after { content: none; }
+
+/* Inline with text: same optical weight as the surrounding line */
+.gl-spinner--inline {
+  --gl-size: 1em;
+  --gl-stroke: .12em;
+  vertical-align: -.14em;
+}
+.gl-spinner--inline::after { content: none; }
+
+/* --------------------------------------------------------------------------
+   Accessibility
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-spinner::before {
+    animation: none;
+    transform: rotate(210deg);
+  }
+  .gl-spinner::after {
+    animation: gl-spinner-fade 2.4s ease-in-out infinite;
+  }
+  @keyframes gl-spinner-fade {
+    0%, 100% { opacity: .55; }
+    50%      { opacity: 1; }
+  }
+}
+
+/* Fallback for engines without mask support: the arc alone still reads. */
+@supports not ((-webkit-mask: none) or (mask: none)) {
+  .gl-spinner {
+    border-top-color: var(--gl-c1);
+    border-right-color: var(--gl-c3);
+    animation: gl-spinner-rotor var(--gl-duration) linear infinite;
+  }
+  .gl-spinner::before,
+  .gl-spinner::after { content: none; }
+}
