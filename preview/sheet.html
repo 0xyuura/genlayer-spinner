@@ -17,6 +17,9 @@
   .row:last-child{margin-bottom:0}
   .lbl{font-size:12px;font-family:ui-monospace,Consolas,monospace;opacity:.45;width:76px}
   img{display:block}
+  /* This sheet exists only to render the still image used in the README, so the
+     CSS build is frozen at 50% of its cycle, the moment quorum is reached. */
+  .gl-spinner::before,.gl-spinner::after{animation-delay:-.8s;animation-play-state:paused}
 </style></head>
 <body>
 <div class="sheet">

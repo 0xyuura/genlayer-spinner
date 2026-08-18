@@ -49,11 +49,6 @@
   .hbar{display:flex;align-items:center;gap:14px;height:64px}
   .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
   .brand svg{width:20px;height:20px;fill:currentColor}
-  .tag{
-    font-family:"Geist Mono",ui-monospace,Consolas,monospace;font-size:11px;letter-spacing:.09em;
-    text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
-    padding:4px 9px;border-radius:99px
-  }
   .spacer{margin-left:auto}
   button.ghost{
     font:inherit;font-size:13px;font-weight:500;color:var(--ink);background:transparent;
@@ -152,7 +147,6 @@
       </svg>
       GenLayer Spinner
     </span>
-    <span class="tag">Portal mission 12</span>
     <span class="spacer"></span>
     <button class="ghost" id="themeBtn" type="button">Dark</button>
   </div>
@@ -163,10 +157,10 @@
   <div class="hero">
     <h1>A loading state worth seeing a thousand times.</h1>
     <p class="lede">
-      An original spinner for the GenLayer Portal. The resting track and the GenLayer mark
-      inherit <code>currentColor</code>, so one file works on every surface. The sweep is the
-      GenLayer Points rainbow, sampled from the live portal. Ships as a standalone SVG, a pure
-      CSS build, and a React component.
+      An original spinner for the GenLayer Portal. Three validators commit their arc in turn, the
+      ring closes the moment quorum is reached, and it advances one slot into the next round. The
+      track and the mark inherit <code>currentColor</code>, so one file works on every surface.
+      Ships as a standalone SVG, a pure CSS build, and a React component.
     </p>
 
     <div class="proof">
@@ -244,8 +238,8 @@
         <div class="top"><img src="dist/genlayer-spinner.svg" width="72" height="72" alt="Primary spinner"></div>
         <div class="name">Primary</div>
         <h4>Consensus</h4>
-        <p>The default. A rainbow arc sweeps the ring while the mark holds centre and pulses once
-           as the arc closes, the beat where a decision lands.</p>
+        <p>The default. Three validators commit their arc in turn, the ring closes on quorum, the
+           mark registers the decision, then the ring steps one slot into the next round.</p>
       </div>
       <div class="card">
         <div class="top"><img src="dist/genlayer-spinner-quorum.svg" width="72" height="72" alt="Quorum spinner"></div>
@@ -270,16 +264,20 @@
     <table>
       <tr><th>Property</th><th>Value</th></tr>
       <tr><td class="k">Canvas</td><td class="v">48 x 48 viewBox, square, centre 24 24</td></tr>
-      <tr><td class="k">Ring radius</td><td class="v">20 units, stroke 3.6 units</td></tr>
+      <tr><td class="k">Ring radius</td><td class="v">20 units, stroke 3.6 units, round caps</td></tr>
       <tr><td class="k">Stroke ratio</td><td class="v">diameter / 13.3, scales with size</td></tr>
-      <tr><td class="k">Cycle</td><td class="v">1.6s, infinite, seamless at the loop point</td></tr>
-      <tr><td class="k">Rotation easing</td><td class="v">linear</td></tr>
-      <tr><td class="k">Arc easing</td><td class="v">cubic-bezier(.42, 0, .25, 1)</td></tr>
-      <tr><td class="k">Mark pulse</td><td class="v">cubic-bezier(.34, 1.4, .5, 1) at 74% of cycle</td></tr>
+      <tr><td class="k">Cycle</td><td class="v">1.6s, infinite</td></tr>
+      <tr><td class="k">Slots</td><td class="v">3 arcs at 120 deg, one slot is 41.888 units</td></tr>
+      <tr><td class="k">Arc length</td><td class="v">11 units at rest, 40 at quorum, of 125.664</td></tr>
+      <tr><td class="k">Commit order</td><td class="v">staggered 0%, 10%, 20%. ring whole 46% to 58%</td></tr>
+      <tr><td class="k">Advance</td><td class="v">120 deg per round, cubic-bezier(.66, 0, .34, 1)</td></tr>
+      <tr><td class="k">Loop proof</td><td class="v">120 deg maps the 3 fold ring onto itself exactly</td></tr>
+      <tr><td class="k">Arc easing</td><td class="v">cubic-bezier(.5, 0, .2, 1)</td></tr>
+      <tr><td class="k">Mark pulse</td><td class="v">cubic-bezier(.34, 1.4, .5, 1), fires at 56%</td></tr>
       <tr><td class="k">Mark geometry</td><td class="v">official GenLayer mark, 3 paths, unmodified</td></tr>
       <tr><td class="k">Adaptive colour</td><td class="v">currentColor for track and mark</td></tr>
-      <tr><td class="k">Reduced motion</td><td class="v">animation stops, static arc plus slow fade</td></tr>
-      <tr><td class="k">Payload</td><td class="v">SVG 1.9 KB, CSS 3.4 KB, no runtime, no images</td></tr>
+      <tr><td class="k">Reduced motion</td><td class="v">motion stops, arcs hold, mark fades slowly</td></tr>
+      <tr><td class="k">Payload</td><td class="v">SVG 4.8 KB, CSS 7.3 KB, no runtime, no images</td></tr>
     </table>
 
     <div class="swatches">
@@ -309,9 +307,9 @@ import GenLayerSpinner from "./GenLayerSpinner";
   </section>
 
   <footer>
-    Built for GenLayer Portal mission 12, Design the GenLayer Spinner.<br>
-    Mark geometry and the GenLayer Points palette are taken from the live portal so the spinner
-    sits inside the existing system rather than beside it.
+    Mark geometry and the GenLayer Points palette are taken from the live portal, so the spinner
+    sits inside the existing system rather than beside it.<br>
+    Free to use, change and ship under the MIT licence.
   </footer>
 </div>
 

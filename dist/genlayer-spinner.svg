@@ -1,51 +1,94 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Loading">
   <title>GenLayer spinner</title>
   <defs>
-    <linearGradient id="glpRainbow" gradientUnits="userSpaceOnUse" x1="4" y1="44" x2="44" y2="4">
+    <!-- One rainbow run per 120 degree slot, ending on the colour it started
+         with, so the three slots tile into a continuous ring with no seam.
+         The three gradients are the same geometry rotated into place, which
+         makes the whole ring exactly three fold symmetric. -->
+    <linearGradient id="glpA" gradientUnits="userSpaceOnUse" x1="44" y1="24" x2="14" y2="41.32">
       <stop offset="0" stop-color="#9B83EA"/>
-      <stop offset="0.24" stop-color="#77AEE9"/>
-      <stop offset="0.46" stop-color="#75D4B6"/>
-      <stop offset="0.70" stop-color="#E694C4"/>
-      <stop offset="1" stop-color="#EFB36A"/>
+      <stop offset="0.2" stop-color="#77AEE9"/>
+      <stop offset="0.4" stop-color="#75D4B6"/>
+      <stop offset="0.6" stop-color="#E694C4"/>
+      <stop offset="0.8" stop-color="#EFB36A"/>
+      <stop offset="1" stop-color="#9B83EA"/>
+    </linearGradient>
+    <linearGradient id="glpB" gradientUnits="userSpaceOnUse" gradientTransform="rotate(120 24 24)" x1="44" y1="24" x2="14" y2="41.32">
+      <stop offset="0" stop-color="#9B83EA"/>
+      <stop offset="0.2" stop-color="#77AEE9"/>
+      <stop offset="0.4" stop-color="#75D4B6"/>
+      <stop offset="0.6" stop-color="#E694C4"/>
+      <stop offset="0.8" stop-color="#EFB36A"/>
+      <stop offset="1" stop-color="#9B83EA"/>
+    </linearGradient>
+    <linearGradient id="glpC" gradientUnits="userSpaceOnUse" gradientTransform="rotate(240 24 24)" x1="44" y1="24" x2="14" y2="41.32">
+      <stop offset="0" stop-color="#9B83EA"/>
+      <stop offset="0.2" stop-color="#77AEE9"/>
+      <stop offset="0.4" stop-color="#75D4B6"/>
+      <stop offset="0.6" stop-color="#E694C4"/>
+      <stop offset="0.8" stop-color="#EFB36A"/>
+      <stop offset="1" stop-color="#9B83EA"/>
     </linearGradient>
   </defs>
 
   <style>
-    .gl-track {
-      fill: none;
-      stroke: #8A8A93;
-      stroke-opacity: .20;
-      stroke-width: 3.6;
-    }
+    /* r=20, circumference 125.664. one slot is 41.888. */
+
+    .gl-track { fill: none; stroke: #8A8A93; stroke-opacity: .18; stroke-width: 3.6; }
+
+    /* the ring advances exactly one slot per round. 120 degrees maps the
+       three fold arrangement onto itself, so the loop point is invisible. */
     .gl-rotor {
       transform-origin: 24px 24px;
-      animation: gl-rotor 1.6s linear infinite;
+      animation: gl-advance 1.6s cubic-bezier(.66, 0, .34, 1) infinite;
     }
-    .gl-arc {
+
+    .gl-seg {
       fill: none;
-      stroke: url(#glpRainbow);
       stroke-width: 3.6;
       stroke-linecap: round;
-      animation: gl-arc 1.6s cubic-bezier(.42, 0, .25, 1) infinite;
+      stroke-dasharray: 11 114.664;
+      animation-duration: 1.6s;
+      animation-timing-function: cubic-bezier(.5, 0, .2, 1);
+      animation-iteration-count: infinite;
     }
+    .gl-seg.s1 { stroke: url(#glpA); stroke-dashoffset: 0;       animation-name: gl-vote-1; }
+    .gl-seg.s2 { stroke: url(#glpB); stroke-dashoffset: -41.888; animation-name: gl-vote-2; }
+    .gl-seg.s3 { stroke: url(#glpC); stroke-dashoffset: -83.776; animation-name: gl-vote-3; }
+
     .gl-core {
       fill: #111113;
       transform-origin: 17.0147px 16px;
-      animation: gl-core 1.6s cubic-bezier(.34, 1.4, .5, 1) infinite;
+      animation: gl-decide 1.6s cubic-bezier(.34, 1.4, .5, 1) infinite;
     }
 
-    @keyframes gl-rotor {
-      to { transform: rotate(360deg); }
+    @keyframes gl-advance {
+      0%, 58% { transform: rotate(0deg); }
+      100%    { transform: rotate(120deg); }
     }
-    /* circumference of r=20 is 125.664 */
-    @keyframes gl-arc {
-      0%   { stroke-dasharray: 9 116.7;  stroke-dashoffset: 0; }
-      55%  { stroke-dasharray: 82 43.7;  stroke-dashoffset: -20; }
-      100% { stroke-dasharray: 9 116.7;  stroke-dashoffset: -125.664; }
+
+    /* each validator commits its arc in turn. the ring is whole from 46% to
+       58%, which is the moment the decision is reached. */
+    @keyframes gl-vote-1 {
+      0%        { stroke-dasharray: 11 114.664; }
+      30%, 58%  { stroke-dasharray: 40 85.664; }
+      78%, 100% { stroke-dasharray: 11 114.664; }
     }
-    @keyframes gl-core {
-      0%, 58%, 100% { transform: scale(1);    opacity: .90; }
-      74%           { transform: scale(1.11); opacity: 1; }
+    @keyframes gl-vote-2 {
+      0%, 10%   { stroke-dasharray: 11 114.664; }
+      38%, 58%  { stroke-dasharray: 40 85.664; }
+      86%, 100% { stroke-dasharray: 11 114.664; }
+    }
+    @keyframes gl-vote-3 {
+      0%, 20%   { stroke-dasharray: 11 114.664; }
+      46%, 58%  { stroke-dasharray: 40 85.664; }
+      94%, 100% { stroke-dasharray: 11 114.664; }
+    }
+
+    @keyframes gl-decide {
+      0%, 42%   { transform: scale(1);    opacity: .88; }
+      56%       { transform: scale(1.13); opacity: 1; }
+      76%, 100% { transform: scale(1);    opacity: .88; }
     }
 
     @media (prefers-color-scheme: dark) {
@@ -54,8 +97,8 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .gl-rotor { animation: none; transform: rotate(-90deg); }
-      .gl-arc   { animation: none; stroke-dasharray: 82 43.7; stroke-dashoffset: -20; }
+      .gl-rotor { animation: none; }
+      .gl-seg   { animation: none; stroke-dasharray: 30 95.664; }
       .gl-core  { animation: none; opacity: 1; }
     }
   </style>
@@ -63,7 +106,9 @@
   <circle class="gl-track" cx="24" cy="24" r="20"/>
 
   <g class="gl-rotor">
-    <circle class="gl-arc" cx="24" cy="24" r="20"/>
+    <circle class="gl-seg s1" cx="24" cy="24" r="20"/>
+    <circle class="gl-seg s2" cx="24" cy="24" r="20"/>
+    <circle class="gl-seg s3" cx="24" cy="24" r="20"/>
   </g>
 
   <g transform="translate(14.472 15.04) scale(0.56)">

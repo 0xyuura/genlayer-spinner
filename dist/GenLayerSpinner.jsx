@@ -5,12 +5,30 @@ import { useId } from "react";
  *
  * Inline SVG build. The track and the GenLayer mark use `currentColor`, so the
  * spinner adapts to light and dark surfaces from whatever `color` it inherits.
- * The sweeping arc uses the GenLayer Points rainbow.
+ *
+ * Motion: three validators commit their arc in turn, the ring closes when
+ * quorum is reached, the mark registers the decision, then the ring advances
+ * exactly one slot. 120 degrees maps the three fold arrangement onto itself,
+ * so the loop point is invisible.
  *
  *   <GenLayerSpinner />
  *   <GenLayerSpinner size={16} showMark={false} />
  *   <GenLayerSpinner size={72} duration="1.9s" label="Verifying decision" />
  */
+
+// r = 20, circumference 125.664, one slot is 41.888
+const REST = "11 114.664";
+const FULL = "40 85.664";
+
+const STOPS = [
+  ["0", "#9B83EA"],
+  ["0.2", "#77AEE9"],
+  ["0.4", "#75D4B6"],
+  ["0.6", "#E694C4"],
+  ["0.8", "#EFB36A"],
+  ["1", "#9B83EA"],
+];
+
 export default function GenLayerSpinner({
   size = 40,
   duration = "1.6s",
@@ -20,35 +38,73 @@ export default function GenLayerSpinner({
   style,
   ...rest
 }) {
-  const uid = useId().replace(/[:]/g, "");
-  const gradientId = `glp-${uid}`;
-  const rotorName = `gl-rotor-${uid}`;
-  const arcName = `gl-arc-${uid}`;
-  const coreName = `gl-core-${uid}`;
+  const uid = useId().replace(/:/g, "");
+  const g = (n) => `glp-${n}-${uid}`;
 
   const css = `
-    .rotor-${uid} { transform-origin: 24px 24px; animation: ${rotorName} ${duration} linear infinite; }
-    .arc-${uid}   { animation: ${arcName} ${duration} cubic-bezier(.42,0,.25,1) infinite; }
-    .core-${uid}  { transform-origin: 17.0147px 16px; animation: ${coreName} ${duration} cubic-bezier(.34,1.4,.5,1) infinite; }
+    .rotor-${uid} {
+      transform-origin: 24px 24px;
+      animation: advance-${uid} ${duration} cubic-bezier(.66,0,.34,1) infinite;
+    }
+    .seg-${uid} {
+      stroke-dasharray: ${REST};
+      animation-duration: ${duration};
+      animation-timing-function: cubic-bezier(.5,0,.2,1);
+      animation-iteration-count: infinite;
+    }
+    .seg1-${uid} { animation-name: vote1-${uid}; }
+    .seg2-${uid} { animation-name: vote2-${uid}; }
+    .seg3-${uid} { animation-name: vote3-${uid}; }
+    .core-${uid} {
+      transform-origin: 17.0147px 16px;
+      animation: decide-${uid} ${duration} cubic-bezier(.34,1.4,.5,1) infinite;
+    }
 
-    @keyframes ${rotorName} { to { transform: rotate(360deg); } }
-    @keyframes ${arcName} {
-      0%   { stroke-dasharray: 9 116.7; stroke-dashoffset: 0; }
-      55%  { stroke-dasharray: 82 43.7; stroke-dashoffset: -20; }
-      100% { stroke-dasharray: 9 116.7; stroke-dashoffset: -125.664; }
+    @keyframes advance-${uid} {
+      0%, 58% { transform: rotate(0deg); }
+      100%    { transform: rotate(120deg); }
     }
-    @keyframes ${coreName} {
-      0%, 58%, 100% { transform: scale(1);    opacity: .9; }
-      74%           { transform: scale(1.11); opacity: 1; }
+    @keyframes vote1-${uid} {
+      0%        { stroke-dasharray: ${REST}; }
+      30%, 58%  { stroke-dasharray: ${FULL}; }
+      78%, 100% { stroke-dasharray: ${REST}; }
     }
+    @keyframes vote2-${uid} {
+      0%, 10%   { stroke-dasharray: ${REST}; }
+      38%, 58%  { stroke-dasharray: ${FULL}; }
+      86%, 100% { stroke-dasharray: ${REST}; }
+    }
+    @keyframes vote3-${uid} {
+      0%, 20%   { stroke-dasharray: ${REST}; }
+      46%, 58%  { stroke-dasharray: ${FULL}; }
+      94%, 100% { stroke-dasharray: ${REST}; }
+    }
+    @keyframes decide-${uid} {
+      0%, 42%   { transform: scale(1);    opacity: .88; }
+      56%       { transform: scale(1.13); opacity: 1; }
+      76%, 100% { transform: scale(1);    opacity: .88; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .rotor-${uid} { animation: none; transform: rotate(-90deg); }
-      .arc-${uid}   { animation: none; stroke-dasharray: 82 43.7; stroke-dashoffset: -20; }
+      .rotor-${uid} { animation: none; }
+      .seg-${uid}   { animation: none; stroke-dasharray: 30 95.664; }
       .core-${uid}  { animation: none; opacity: 1; }
     }
   `;
 
-  const stroke = 3.6;
+  const gradient = (id, rotate) => (
+    <linearGradient
+      key={id}
+      id={id}
+      gradientUnits="userSpaceOnUse"
+      x1="44" y1="24" x2="14" y2="41.32"
+      {...(rotate ? { gradientTransform: `rotate(${rotate} 24 24)` } : {})}
+    >
+      {STOPS.map(([offset, color]) => (
+        <stop key={offset} offset={offset} stopColor={color} />
+      ))}
+    </linearGradient>
+  );
 
   return (
     <svg
@@ -62,28 +118,25 @@ export default function GenLayerSpinner({
       {...rest}
     >
       <defs>
-        <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1="4" y1="44" x2="44" y2="4">
-          <stop offset="0" stopColor="#9B83EA" />
-          <stop offset="0.24" stopColor="#77AEE9" />
-          <stop offset="0.46" stopColor="#75D4B6" />
-          <stop offset="0.7" stopColor="#E694C4" />
-          <stop offset="1" stopColor="#EFB36A" />
-        </linearGradient>
+        {gradient(g("a"), 0)}
+        {gradient(g("b"), 120)}
+        {gradient(g("c"), 240)}
       </defs>
 
       <style>{css}</style>
 
       <circle
         cx="24" cy="24" r="20"
-        fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth={stroke}
+        fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth="3.6"
       />
 
-      <g className={`rotor-${uid}`}>
-        <circle
-          className={`arc-${uid}`}
-          cx="24" cy="24" r="20"
-          fill="none" stroke={`url(#${gradientId})`} strokeWidth={stroke} strokeLinecap="round"
-        />
+      <g className={`rotor-${uid}`} fill="none" strokeWidth="3.6" strokeLinecap="round">
+        <circle className={`seg-${uid} seg1-${uid}`} cx="24" cy="24" r="20"
+                stroke={`url(#${g("a")})`} strokeDashoffset="0" />
+        <circle className={`seg-${uid} seg2-${uid}`} cx="24" cy="24" r="20"
+                stroke={`url(#${g("b")})`} strokeDashoffset="-41.888" />
+        <circle className={`seg-${uid} seg3-${uid}`} cx="24" cy="24" r="20"
+                stroke={`url(#${g("c")})`} strokeDashoffset="-83.776" />
       </g>
 
       {showMark && (

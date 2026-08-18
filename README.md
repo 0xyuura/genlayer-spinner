@@ -24,9 +24,16 @@ things and nothing else:
 2. **The GenLayer Points rainbow**, `#9B83EA → #77AEE9 → #75D4B6 → #E694C4 → #EFB36A`, sampled from
    the live `--glp-rainbow` token on portal.genlayer.foundation.
 
-The arc sweeps the ring while the mark holds the centre, then pulses once at 74% of the cycle as
-the arc closes. That single beat is the decision landing. It is small enough that you never
-consciously notice it, and it is the reason the loop does not feel mechanical.
+The motion is the protocol, not decoration. The ring is divided into three equal slots, one per
+validator. Each slot commits its arc in turn, staggered by 10% of the cycle. At 46% the third one
+lands and the ring is whole, which is the moment quorum is reached. The mark registers it with a
+single pulse at 56%. Then the ring advances exactly one slot and the next round begins.
+
+That last detail is also what makes the loop provably seamless. The advance is 120 degrees, and a
+three fold symmetric ring rotated by 120 degrees is identical to itself, so the loop point cannot
+be seen. It is not a crossfade or a lucky choice of duration. The three arcs carry the same rainbow
+run, each ending on the colour it started with, so the closed ring reads as one continuous band and
+no join is visible either.
 
 No gradients behind the logo, no glow, no bounce, no easter eggs. The restraint is the point:
 this thing has to survive being seen a thousand times.
@@ -39,7 +46,7 @@ this thing has to survive being seen a thousand times.
 | --- | --- |
 | Original animated spinner | Drawn from scratch on a 48 unit grid. Nothing traced, no library, no generator. |
 | Web ready format | Standalone SVG, pure CSS build, and a React component. Pick one, no build step needed for any of them. |
-| Smooth infinite loop | 1.6s cycle. The dash offset ends exactly one circumference behind where it started, so the loop point is mathematically seamless, not cross faded. |
+| Smooth infinite loop | 1.6s cycle. The ring advances 120 degrees per round, which maps a three fold symmetric ring onto itself exactly, so the loop point is mathematically invisible rather than cross faded. |
 | Works on light and dark | The track and the mark use `currentColor`. One file, both surfaces, no theme switch. |
 | Readable at small sizes | Stroke weight is locked to diameter at a fixed ratio. Verified at 96, 64, 48, 32, 24 and 16 px. Below 24px the mark is dropped so the silhouette stays clean. |
 | GenLayer identity present | The official mark geometry plus the official GLP palette. Nothing invented. |
@@ -83,9 +90,16 @@ and as a favicon. Colour follows `prefers-color-scheme`.
 <span class="gl-spinner" style="--gl-size:72px; --gl-duration:1.9s"></span>
 ```
 
-One element, two pseudo elements, no images and no JavaScript. The arc is a conic gradient masked
-into a ring, and the mark is `currentColor` painted through an inline SVG mask, which is what lets
-a single rule serve both themes.
+One element, two pseudo elements, no images and no JavaScript. The rainbow is a conic gradient
+locked to the ring, cut down by two intersected mask layers: a radial one that turns the disc into
+a ring, and a conic one that reveals only the part of each slot its validator has committed. The
+three arc lengths are registered `<angle>` custom properties, which is what makes them animatable
+at all. The mark is `currentColor` painted through an inline SVG mask, which is what lets a single
+rule serve both themes.
+
+The one visual difference from the SVG build: conic gradients have no stroke caps, so the CSS arcs
+end square where the SVG arcs end round. If the rounded ends matter to you, use the SVG or React
+build.
 
 | Token | Default | Notes |
 | --- | --- | --- |
@@ -121,11 +135,14 @@ page without colliding.
 | Ring | radius 20, stroke 3.6 units, round caps |
 | Stroke ratio | diameter / 13.3 |
 | Cycle | 1.6s, infinite |
-| Rotation easing | `linear` |
-| Arc easing | `cubic-bezier(.42, 0, .25, 1)` |
-| Mark pulse | `cubic-bezier(.34, 1.4, .5, 1)`, fires at 74% |
-| Arc length | 9 to 82 units of a 125.664 circumference |
-| Payload | SVG 1.9 KB, CSS 3.4 KB, no runtime, no network requests |
+| Slots | 3 arcs at 120 degrees, one slot is 41.888 units |
+| Arc length | 11 units at rest, 40 at quorum, of a 125.664 circumference |
+| Commit order | staggered at 0%, 10% and 20%. Ring whole from 46% to 58% |
+| Advance | 120 degrees per round, `cubic-bezier(.66, 0, .34, 1)` |
+| Loop proof | 120 degrees maps the three fold ring onto itself exactly |
+| Arc easing | `cubic-bezier(.5, 0, .2, 1)` |
+| Mark pulse | `cubic-bezier(.34, 1.4, .5, 1)`, fires at 56% |
+| Payload | SVG 4.8 KB, CSS 7.3 KB, no runtime, no network requests |
 
 ---
 
@@ -141,8 +158,11 @@ page without colliding.
 
 ## Browser support
 
-Chrome, Edge, Safari 15.4+, Firefox 53+. The CSS build degrades through a `@supports` guard: if
-`mask` is unavailable, the ring falls back to a two colour border spinner rather than disappearing.
+The SVG and React builds run anywhere CSS animations do, which is every browser in use.
+
+The CSS build additionally needs `@property` and `mask-composite`, so Chrome and Edge 120+,
+Safari 16.4+ and Firefox 128+. Two `@supports` guards catch anything older and fall back to a two
+colour border spinner rather than letting the ring disappear.
 
 ### One note on the standalone SVG
 
@@ -158,7 +178,7 @@ never wrong.
 
 | Name | Use it for |
 | --- | --- |
-| **Consensus** (primary) | Every general loading state. This is the default. |
+| **Consensus** (primary) | Every general loading state. Three validators commit in turn, the ring closes on quorum, then it steps one slot forward. This is the default. |
 | **Quorum** | Validator and consensus screens. Three nodes orbit a ring and fire in turn, and the mark brightens once all three have spoken. |
 | **Sweep** | First paint and full page transitions. A band of the rainbow rises through the mark on a seamless 2.2s loop. |
 

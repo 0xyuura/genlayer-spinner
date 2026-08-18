@@ -1,18 +1,23 @@
 /* ==========================================================================
    GenLayer Spinner. Pure CSS build.
-   Zero dependencies, zero images, one element.
+   One element, zero dependencies, zero images.
+
+   Motion: three validators commit their arc in turn, the ring closes when
+   quorum is reached, the mark registers the decision, then the ring advances
+   exactly one slot. 120 degrees maps the three fold arrangement onto itself,
+   so the loop point is invisible.
 
    Usage:
      <span class="gl-spinner" role="status" aria-label="Loading"></span>
-
-   Sizing (any of these):
-     <span class="gl-spinner gl-spinner--sm"></span>            16px
-     <span class="gl-spinner" style="--gl-size:64px"></span>    custom
 
    Colour:
      The track and the GenLayer mark inherit `color`, so the spinner adapts to
      light and dark surfaces with no extra rule. Set `color` on any ancestor.
    ========================================================================== */
+
+@property --gl-a1 { syntax: "<angle>"; inherits: false; initial-value: 31.5deg; }
+@property --gl-a2 { syntax: "<angle>"; inherits: false; initial-value: 31.5deg; }
+@property --gl-a3 { syntax: "<angle>"; inherits: false; initial-value: 31.5deg; }
 
 .gl-spinner {
   /* tokens */
@@ -37,33 +42,58 @@
   border-radius: 50%;
 
   /* the resting track. flat fallback first, then the adaptive value */
-  border: var(--gl-stroke) solid rgba(138, 138, 147, .22);
-  border-color: color-mix(in srgb, currentColor 15%, transparent);
+  border: var(--gl-stroke) solid rgba(138, 138, 147, .20);
+  border-color: color-mix(in srgb, currentColor 16%, transparent);
 }
 
-/* the sweeping arc */
+/* The three validator arcs. Each conic layer paints one 120 degree slot and
+   runs the full rainbow inside it, ending on the colour it started with, so
+   the closed ring reads as one continuous band. */
 .gl-spinner::before {
   content: "";
   position: absolute;
-  inset: calc(-1 * var(--gl-stroke));
+  inset: 0;
   border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    rgba(155, 131, 234, 0) 0deg,
-    var(--gl-c1) 46deg,
-    var(--gl-c2) 122deg,
-    var(--gl-c3) 190deg,
-    var(--gl-c4) 258deg,
-    var(--gl-c5) 316deg,
-    rgba(239, 179, 106, 0) 342deg,
-    rgba(239, 179, 106, 0) 360deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
-          mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
-  animation: gl-spinner-rotor var(--gl-duration) linear infinite;
+  /* The rainbow is locked to the ring, one full run per 120 degree slot, so
+     the colour under any point never moves as the arcs grow. */
+  background: conic-gradient(from 0deg,
+    var(--gl-c1) 0deg,   var(--gl-c2) 24deg,  var(--gl-c3) 48deg,
+    var(--gl-c4) 72deg,  var(--gl-c5) 96deg,  var(--gl-c1) 120deg,
+    var(--gl-c2) 144deg, var(--gl-c3) 168deg, var(--gl-c4) 192deg,
+    var(--gl-c5) 216deg, var(--gl-c1) 240deg, var(--gl-c2) 264deg,
+    var(--gl-c3) 288deg, var(--gl-c4) 312deg, var(--gl-c5) 336deg,
+    var(--gl-c1) 360deg);
+
+  /* Two mask layers intersected: one cuts the disc down to a ring, the other
+     reveals only the part of each slot its validator has committed. */
+  -webkit-mask:
+    conic-gradient(from 0deg,
+      #000 0deg var(--gl-a1),
+      transparent var(--gl-a1) 120deg,
+      #000 120deg calc(120deg + var(--gl-a2)),
+      transparent calc(120deg + var(--gl-a2)) 240deg,
+      #000 240deg calc(240deg + var(--gl-a3)),
+      transparent calc(240deg + var(--gl-a3)) 360deg),
+    radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
+  mask:
+    conic-gradient(from 0deg,
+      #000 0deg var(--gl-a1),
+      transparent var(--gl-a1) 120deg,
+      #000 120deg calc(120deg + var(--gl-a2)),
+      transparent calc(120deg + var(--gl-a2)) 240deg,
+      #000 240deg calc(240deg + var(--gl-a3)),
+      transparent calc(240deg + var(--gl-a3)) 360deg),
+    radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke)), #000 calc(100% - var(--gl-stroke)));
+  -webkit-mask-composite: source-in;
+          mask-composite: intersect;
+  animation:
+    gl-advance var(--gl-duration) cubic-bezier(.66, 0, .34, 1) infinite,
+    gl-vote-1  var(--gl-duration) cubic-bezier(.5, 0, .2, 1) infinite,
+    gl-vote-2  var(--gl-duration) cubic-bezier(.5, 0, .2, 1) infinite,
+    gl-vote-3  var(--gl-duration) cubic-bezier(.5, 0, .2, 1) infinite;
 }
 
-/* the GenLayer mark, painted with currentColor through a mask */
+/* The GenLayer mark, painted with currentColor through a mask. */
 .gl-spinner::after {
   content: "";
   position: absolute;
@@ -71,16 +101,34 @@
   background: currentColor;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34.0294 32'%3E%3Cpath d='M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z'/%3E%3Cpath d='M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z'/%3E%3Cpath d='M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z'/%3E%3C/svg%3E") center / var(--gl-mark) no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34.0294 32'%3E%3Cpath d='M15.4065 11.2607L9.64908 23.3639L15.0689 26.072L0 32L15.4065 0V11.2607Z'/%3E%3Cpath d='M18.6229 11.2607L24.3803 23.3639L18.9605 26.072L34.0294 32L18.6229 0V11.2607Z'/%3E%3Cpath d='M16.9311 15.2394L20.3041 21.9088L16.9311 23.5623L13.7392 21.9019L16.9311 15.2394Z'/%3E%3C/svg%3E") center / var(--gl-mark) no-repeat;
-  animation: gl-spinner-core var(--gl-duration) cubic-bezier(.34, 1.4, .5, 1) infinite;
+  animation: gl-decide var(--gl-duration) cubic-bezier(.34, 1.4, .5, 1) infinite;
 }
 
-@keyframes gl-spinner-rotor {
-  to { transform: rotate(360deg); }
+@keyframes gl-advance {
+  0%, 58% { transform: rotate(0deg); }
+  100%    { transform: rotate(120deg); }
 }
 
-@keyframes gl-spinner-core {
-  0%, 58%, 100% { transform: scale(1);    opacity: .90; }
-  74%           { transform: scale(1.11); opacity: 1; }
+@keyframes gl-vote-1 {
+  0%        { --gl-a1: 31.5deg; }
+  30%, 58%  { --gl-a1: 114.6deg; }
+  78%, 100% { --gl-a1: 31.5deg; }
+}
+@keyframes gl-vote-2 {
+  0%, 10%   { --gl-a2: 31.5deg; }
+  38%, 58%  { --gl-a2: 114.6deg; }
+  86%, 100% { --gl-a2: 31.5deg; }
+}
+@keyframes gl-vote-3 {
+  0%, 20%   { --gl-a3: 31.5deg; }
+  46%, 58%  { --gl-a3: 114.6deg; }
+  94%, 100% { --gl-a3: 31.5deg; }
+}
+
+@keyframes gl-decide {
+  0%, 42%   { transform: scale(1);    opacity: .88; }
+  56%       { transform: scale(1.13); opacity: 1; }
+  76%, 100% { transform: scale(1);    opacity: .88; }
 }
 
 /* --------------------------------------------------------------------------
@@ -110,24 +158,43 @@
 @media (prefers-reduced-motion: reduce) {
   .gl-spinner::before {
     animation: none;
-    transform: rotate(210deg);
+    --gl-a1: 86deg;
+    --gl-a2: 86deg;
+    --gl-a3: 86deg;
   }
   .gl-spinner::after {
-    animation: gl-spinner-fade 2.4s ease-in-out infinite;
+    animation: gl-decide-still 2.4s ease-in-out infinite;
   }
-  @keyframes gl-spinner-fade {
+  @keyframes gl-decide-still {
     0%, 100% { opacity: .55; }
     50%      { opacity: 1; }
   }
 }
 
-/* Fallback for engines without mask support: the arc alone still reads. */
+/* --------------------------------------------------------------------------
+   Fallbacks
+   -------------------------------------------------------------------------- */
+
+/* Without @property the three angles cannot animate, so the arcs hold their
+   resting length and the ring still advances one slot per round. */
+@supports not (background: conic-gradient(from 0deg, red 0deg, blue 10deg)) {
+  .gl-spinner::before { display: none; }
+  .gl-spinner {
+    border-top-color: var(--gl-c1);
+    border-right-color: var(--gl-c3);
+    animation: gl-fallback var(--gl-duration) linear infinite;
+  }
+  @keyframes gl-fallback { to { transform: rotate(360deg); } }
+}
+
+/* Without mask support the arc alone still reads. */
 @supports not ((-webkit-mask: none) or (mask: none)) {
   .gl-spinner {
     border-top-color: var(--gl-c1);
     border-right-color: var(--gl-c3);
-    animation: gl-spinner-rotor var(--gl-duration) linear infinite;
+    animation: gl-fallback var(--gl-duration) linear infinite;
   }
   .gl-spinner::before,
   .gl-spinner::after { content: none; }
+  @keyframes gl-fallback { to { transform: rotate(360deg); } }
 }
