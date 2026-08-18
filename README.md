@@ -5,7 +5,8 @@ Built for **Portal mission 12, Design the GenLayer Spinner**.
 
 ![GenLayer Spinner on light and dark surfaces](preview/spinner-preview.png)
 
-Live demo: open `index.html`, or visit the GitHub Pages build of this repo.
+**Live demo: https://0xyuura.github.io/genlayer-spinner/**
+The spinners on this page are animating. The image above is a still frame.
 
 ---
 
